@@ -3,6 +3,7 @@ package com.example.memorygame
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
@@ -29,6 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -38,12 +41,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.memorygame.entity.GameEntity
+import com.example.memorygame.support.STATE_GAME_NOT_START
+import com.example.memorygame.support.STATE_GAME_PAUSED
+import com.example.memorygame.support.STATE_GAME_RUNNING
+import com.example.memorygame.ui.theme.BlueSoft
 import com.example.memorygame.ui.theme.MemoryGameTheme
 import com.example.memorygame.ui.theme.Orange
+import com.example.memorygame.viewmodel.GameCounterViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -59,6 +69,8 @@ class MainActivity : ComponentActivity() {
         9 to R.drawable.ic_melon,
         10 to R.drawable.ic_cherry
     )
+
+    private val viewModel: GameCounterViewModel by viewModels()
 
     private val listOfCard: MutableList<Int> = mutableListOf()
 
@@ -76,13 +88,18 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Column {
-                        HeaderContent()
+                        HeaderContent(viewModel = viewModel)
                         MainContent(listOfCard = listOfCard)
-                        BottomContent()
+                        BottomContent(viewModel = viewModel)
                     }
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        viewModel.destroy()
+        super.onDestroy()
     }
 
     private fun generateInitialImageMapping() {
@@ -125,7 +142,9 @@ fun MainContent(listOfCard: List<Int>) {
         .fillMaxWidth()
         .height(getScreenDimensions().second.times(0.8f))) {
         Column(
-            modifier = Modifier.align(Alignment.Center).wrapContentSize()
+            modifier = Modifier
+                .align(Alignment.Center)
+                .wrapContentSize()
         ) {
             (0 until gridSize step columns).map { start ->
                 Row {
@@ -148,16 +167,25 @@ fun CardContent(isFlipped: Boolean, image: Int, widthCardStandard: Dp) {
 }
 
 @Composable
-fun HeaderContent() {
+fun HeaderContent(viewModel: GameCounterViewModel) {
+    val gameEntity: GameEntity? by viewModel.counterLiveData.observeAsState()
+
     Box(modifier = Modifier
         .fillMaxWidth()
         .height(getScreenDimensions().second.times(0.1f))) {
-
+        when (gameEntity?.state) {
+            null -> Text("Press 'Play' button below to start")
+            STATE_GAME_RUNNING -> Text("${gameEntity?.counter ?: -1} second ${if ((gameEntity?.counter ?: 1) > 1) "s" else ""} left", textAlign = TextAlign.Center)
+            STATE_GAME_PAUSED -> Text("Game Paused (${gameEntity?.counter} second left)", textAlign = TextAlign.Center)
+            else -> Text("Game Over!", textAlign = TextAlign.Center)
+        }
     }
 }
 
 @Composable
-fun BottomContent() {
+fun BottomContent(viewModel: GameCounterViewModel) {
+    val state: GameEntity? by viewModel.counterLiveData.observeAsState()
+
     Box(modifier = Modifier
         .fillMaxWidth()
         .height(getScreenDimensions().second.times(0.1f))
@@ -175,26 +203,14 @@ fun BottomContent() {
                     .wrapContentHeight(),
                 contentPadding = PaddingValues(16.dp),
                 shape = RoundedCornerShape(16.dp),
-                onClick = { /*TODO*/ }) {
-                Text(text = "Hello 1")
-            }
-            Button(
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .wrapContentHeight(),
-                contentPadding = PaddingValues(16.dp),
-                shape = RoundedCornerShape(16.dp),
-                onClick = { /*TODO*/ }) {
-                Text(text = "Hello 2")
-            }
-            Button(
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .wrapContentHeight(),
-                contentPadding = PaddingValues(16.dp),
-                shape = RoundedCornerShape(16.dp),
-                onClick = { /*TODO*/ }) {
-                Image(painter = painterResource(id = R.drawable.baseline_restart_alt_24), contentDescription = "Refresh")
+                onClick = { viewModel.startOrPause() }) {
+                Image(
+                    painter = painterResource(
+                        id = if (state?.state == STATE_GAME_RUNNING) R.drawable.rounded_pause_circle else R.drawable.rounded_not_started
+                    ),
+                    contentDescription = "Start / Pause",
+                    modifier = Modifier.size(50.dp).background(Color.Transparent)
+                )
             }
         }
     }
@@ -234,7 +250,7 @@ fun BackContent(widthCardStandard: Dp) {
             .width(widthCardStandard)
             .height(widthCardStandard),
         shape = RoundedCornerShape(16.dp),
-        color = Color.Blue
+        color = BlueSoft
     ) {
         Box(modifier = Modifier
             .fillMaxSize()
