@@ -48,38 +48,23 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.memorygame.entity.CardEntity
 import com.example.memorygame.entity.GameEntity
-import com.example.memorygame.support.STATE_GAME_NOT_START
 import com.example.memorygame.support.STATE_GAME_PAUSED
 import com.example.memorygame.support.STATE_GAME_RUNNING
 import com.example.memorygame.ui.theme.BlueSoft
 import com.example.memorygame.ui.theme.MemoryGameTheme
 import com.example.memorygame.ui.theme.Orange
 import com.example.memorygame.viewmodel.GameCounterViewModel
+import com.example.memorygame.viewmodel.GamePlayViewModel
 
 class MainActivity : ComponentActivity() {
 
-    private val imageMapping: MutableMap<Int, Int> = mutableMapOf(
-        1 to R.drawable.ic_banana,
-        2 to R.drawable.ic_coconut,
-        3 to R.drawable.ic_orange,
-        4 to R.drawable.ic_mangosteen,
-        5 to R.drawable.ic_papaya,
-        6 to R.drawable.ic_rambutan,
-        7 to R.drawable.ic_watermelon,
-        8 to R.drawable.ic_grape,
-        9 to R.drawable.ic_melon,
-        10 to R.drawable.ic_cherry
-    )
-
     private val viewModel: GameCounterViewModel by viewModels()
-
-    private val listOfCard: MutableList<Int> = mutableListOf()
+    private val gamePlayViewModel: GamePlayViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        generateInitialImageMapping()
 
         setContent {
             MemoryGameTheme {
@@ -91,12 +76,16 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Column {
                         HeaderContent(viewModel = viewModel)
-                        MainContent(listOfCard = listOfCard)
+                        MainContent(gamePlayViewModel = gamePlayViewModel)
                         BottomContent(viewModel = viewModel)
                     }
                 }
             }
         }
+
+        gamePlayViewModel.generateInitialImageMapping()
+
+        observeViewModel()
     }
 
     override fun onDestroy() {
@@ -104,22 +93,22 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private fun generateInitialImageMapping() {
-        val list: MutableList<Int> = mutableListOf()
-        for (a in 0 until 20) {
-            list.add(imageMapping.getValue(if (a + 1 > 10) a - 9 else a + 1))
+    private fun observeViewModel() {
+        gamePlayViewModel.allCardFlippedLiveData.observeForever {
+            if (it) {
+                viewModel.win()
+            }
         }
-
-        listOfCard.addAll(list.shuffled())
     }
 }
 
 @Composable
-fun CardView(image: Int) {
+fun CardView(entity: CardEntity, gamePlayViewModel: GamePlayViewModel) {
+    val list: MutableList<CardEntity>? by gamePlayViewModel.initiateCardLiveData.observeAsState()
+
     val widthCardStandard: Double = (getScreenDimensions().first.value - getScreenDimensions().first.value * 0.1) / 4
-    var isFlipped by remember { mutableStateOf(false) }
     val rotationY by animateFloatAsState(
-        targetValue = if (isFlipped) 180f else 0f,
+        targetValue = if (entity.isFlipped) 180f else 0f,
         animationSpec = TweenSpec(durationMillis = 500), label = "rotationY"
     )
 
@@ -128,15 +117,17 @@ fun CardView(image: Int) {
         .height(widthCardStandard.dp)
         .padding(8.dp)
         .graphicsLayer(rotationY = rotationY)
-        .clickable { isFlipped = !isFlipped },
+        .clickable { gamePlayViewModel.onFlip(entity) },
         contentAlignment = Alignment.Center
     ) {
-        CardContent(isFlipped = isFlipped, image = image, widthCardStandard = widthCardStandard.dp)
+        CardContent(entity = entity, widthCardStandard = widthCardStandard.dp)
     }
 }
 
 @Composable
-fun MainContent(listOfCard: List<Int>) {
+fun MainContent(gamePlayViewModel: GamePlayViewModel) {
+    val listOfCard: MutableList<CardEntity>? by gamePlayViewModel.initiateCardLiveData.observeAsState()
+
     val gridSize = 20
     val columns = 4
 
@@ -148,10 +139,15 @@ fun MainContent(listOfCard: List<Int>) {
                 .align(Alignment.Center)
                 .wrapContentSize()
         ) {
-            (0 until gridSize step columns).map { start ->
-                Row {
-                    (start until start + columns).forEach { index ->
-                        CardView(listOfCard[index])
+            listOfCard?.let {
+                (0 until gridSize step columns).map { start ->
+                    Row {
+                        (start until start + columns).forEach { index ->
+                            CardView(
+                                entity = it[index],
+                                gamePlayViewModel = gamePlayViewModel
+                            )
+                        }
                     }
                 }
             }
@@ -160,11 +156,11 @@ fun MainContent(listOfCard: List<Int>) {
 }
 
 @Composable
-fun CardContent(isFlipped: Boolean, image: Int, widthCardStandard: Dp) {
-    if (!isFlipped) {
+fun CardContent(entity: CardEntity, widthCardStandard: Dp) {
+    if (!entity.isFlipped) {
         BackContent(widthCardStandard)
     } else {
-        FrontContent(image = image, widthCardStandard)
+        FrontContent(entity = entity, widthCardStandard)
     }
 }
 
@@ -231,7 +227,7 @@ fun getScreenDimensions(): Pair<Dp, Dp> {
 }
 
 @Composable
-fun FrontContent(image: Int, widthCardStandard: Dp) {
+fun FrontContent(entity: CardEntity, widthCardStandard: Dp) {
     Surface(
         modifier = Modifier
             .width(widthCardStandard)
@@ -244,7 +240,7 @@ fun FrontContent(image: Int, widthCardStandard: Dp) {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Image(painter = painterResource(id = image), contentDescription = "Fruit Image")
+            Image(painter = painterResource(id = entity.resourceId), contentDescription = "Fruit Image")
         }
     }
 }
@@ -272,9 +268,9 @@ fun BackContent(widthCardStandard: Dp) {
 fun GreetingPreview() {
 //    BottomContent()
     Row {
-        CardContent(isFlipped = true, image = R.drawable.ic_rambutan, widthCardStandard = 100.dp)
-        CardContent(isFlipped = true, image = R.drawable.ic_watermelon, widthCardStandard = 100.dp)
-        CardContent(isFlipped = true, image = R.drawable.ic_orange, widthCardStandard = 100.dp)
-        CardContent(isFlipped = true, image = R.drawable.ic_papaya, widthCardStandard = 100.dp)
+        CardContent(entity = CardEntity(R.drawable.ic_rambutan), widthCardStandard = 100.dp)
+        CardContent(entity = CardEntity(R.drawable.ic_watermelon), widthCardStandard = 100.dp)
+        CardContent(entity = CardEntity(R.drawable.ic_orange), widthCardStandard = 100.dp)
+        CardContent(entity = CardEntity(R.drawable.ic_papaya), widthCardStandard = 100.dp)
     }
 }

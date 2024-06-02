@@ -9,6 +9,7 @@ import com.example.memorygame.support.SECOND_PER_MINUTE
 import com.example.memorygame.support.STATE_GAME_OVER
 import com.example.memorygame.support.STATE_GAME_PAUSED
 import com.example.memorygame.support.STATE_GAME_RUNNING
+import com.example.memorygame.support.STATE_GAME_WINNER
 import com.example.memorygame.support.TIME_MILLIS_PER_SECOND
 
 class GameCounterViewModel: ViewModel() {
@@ -32,6 +33,16 @@ class GameCounterViewModel: ViewModel() {
         } else if (counterLiveData.value?.state == STATE_GAME_PAUSED) {
             resumeGame()
         }
+    }
+
+    fun win() {
+        counterMutableLiveData.value = GameEntity(
+            state = STATE_GAME_WINNER,
+            counter = timeLeft
+        )
+
+        gameCountDown?.cancel()
+        gameCountDown = null
     }
 
     private fun startGame() {
