@@ -32,9 +32,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -104,8 +101,6 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun CardView(entity: CardEntity, gamePlayViewModel: GamePlayViewModel) {
-    val list: MutableList<CardEntity>? by gamePlayViewModel.initiateCardLiveData.observeAsState()
-
     val widthCardStandard: Double = (getScreenDimensions().first.value - getScreenDimensions().first.value * 0.1) / 4
     val rotationY by animateFloatAsState(
         targetValue = if (entity.isFlipped) 180f else 0f,
