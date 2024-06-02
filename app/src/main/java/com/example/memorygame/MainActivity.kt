@@ -41,6 +41,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -173,12 +175,14 @@ fun HeaderContent(viewModel: GameCounterViewModel) {
     Box(modifier = Modifier
         .fillMaxWidth()
         .height(getScreenDimensions().second.times(0.1f))) {
-        when (gameEntity?.state) {
-            null -> Text("Press 'Play' button below to start")
-            STATE_GAME_RUNNING -> Text("${gameEntity?.counter ?: -1} second ${if ((gameEntity?.counter ?: 1) > 1) "s" else ""} left", textAlign = TextAlign.Center)
-            STATE_GAME_PAUSED -> Text("Game Paused (${gameEntity?.counter} second left)", textAlign = TextAlign.Center)
-            else -> Text("Game Over!", textAlign = TextAlign.Center)
+        val headerText = when (gameEntity?.state) {
+            null -> stringResource(id = R.string.press_play_to_start)
+            STATE_GAME_RUNNING -> stringResource(id = R.string.second_left_information, gameEntity?.counter ?: -1, if ((gameEntity?.counter ?: 1) > 1) "s" else "")
+            STATE_GAME_PAUSED -> stringResource(id = R.string.game_paused, gameEntity?.counter ?: -1)
+            else -> stringResource(id = R.string.game_over)
         }
+
+        Text(headerText, modifier = Modifier.matchParentSize(), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -209,7 +213,9 @@ fun BottomContent(viewModel: GameCounterViewModel) {
                         id = if (state?.state == STATE_GAME_RUNNING) R.drawable.rounded_pause_circle else R.drawable.rounded_not_started
                     ),
                     contentDescription = "Start / Pause",
-                    modifier = Modifier.size(50.dp).background(Color.Transparent)
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(Color.Transparent)
                 )
             }
         }

@@ -51,7 +51,7 @@ class GameCounterViewModel: ViewModel() {
                     state = STATE_GAME_OVER
                 )
             }
-        }
+        }.start()
     }
 
     private fun pauseGame() {
