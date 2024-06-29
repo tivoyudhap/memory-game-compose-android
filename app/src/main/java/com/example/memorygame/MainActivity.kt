@@ -121,7 +121,7 @@ fun CardView(entity: CardEntity, gamePlayViewModel: GamePlayViewModel) {
 
 @Composable
 fun MainContent(gamePlayViewModel: GamePlayViewModel) {
-    val listOfCard: MutableList<CardEntity>? by gamePlayViewModel.initiateCardLiveData.observeAsState()
+    val listOfCard by gamePlayViewModel.initiateCardLiveData.observeAsState(emptyList())
 
     val gridSize = 20
     val columns = 4
@@ -134,15 +134,13 @@ fun MainContent(gamePlayViewModel: GamePlayViewModel) {
                 .align(Alignment.Center)
                 .wrapContentSize()
         ) {
-            listOfCard?.let {
-                (0 until gridSize step columns).map { start ->
-                    Row {
-                        (start until start + columns).forEach { index ->
-                            CardView(
-                                entity = it[index],
-                                gamePlayViewModel = gamePlayViewModel
-                            )
-                        }
+            (0 until gridSize step columns).map { start ->
+                Row {
+                    (start until start + columns).forEach { index ->
+                        CardView(
+                            entity = listOfCard[index],
+                            gamePlayViewModel = gamePlayViewModel
+                        )
                     }
                 }
             }
@@ -228,7 +226,7 @@ fun FrontContent(entity: CardEntity, widthCardStandard: Dp) {
             .width(widthCardStandard)
             .height(widthCardStandard),
         shape = RoundedCornerShape(16.dp),
-        color = Color.Red
+        color = if (entity.isComplete) Color.Green else Color.Red
     ) {
         Box(
             modifier = Modifier

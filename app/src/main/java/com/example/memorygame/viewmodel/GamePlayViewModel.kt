@@ -3,8 +3,11 @@ package com.example.memorygame.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.memorygame.R
 import com.example.memorygame.entity.CardEntity
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class GamePlayViewModel: ViewModel() {
 
@@ -21,11 +24,10 @@ class GamePlayViewModel: ViewModel() {
         10 to R.drawable.ic_cherry
     )
 
-    private val listOfCard: MutableList<CardEntity> = mutableListOf()
     private var selectedCardEntity: CardEntity? = null
 
-    private val initiateCardMutableLiveData: MutableLiveData<MutableList<CardEntity>> = MutableLiveData()
-    val initiateCardLiveData: LiveData<MutableList<CardEntity>> = initiateCardMutableLiveData
+    private val listOfCardMutableLiveData: MutableLiveData<List<CardEntity>> = MutableLiveData()
+    val initiateCardLiveData: LiveData<List<CardEntity>> = listOfCardMutableLiveData
 
     private val allCardFlippedMutableLiveData: MutableLiveData<Boolean> = MutableLiveData()
     val allCardFlippedLiveData: LiveData<Boolean> = allCardFlippedMutableLiveData
@@ -41,14 +43,13 @@ class GamePlayViewModel: ViewModel() {
             )
         }
 
-        listOfCard.addAll(list.shuffled())
-
-        initiateCardMutableLiveData.value = listOfCard
+        listOfCardMutableLiveData.value = list.shuffled()
     }
 
     fun onFlip(entity: CardEntity) {
         if (!entity.isFlipped) {
-            listOfCard.first { it.id == entity.id }.isFlipped = true
+            val updatedList = listOfCardMutableLiveData.value?.map { if (it.id == entity.id) it.copy(isFlipped = !entity.isFlipped) else it }
+            listOfCardMutableLiveData.value = updatedList?.toMutableList()
             isCardMatch(entity)
             if (isAllCardMatch()) {
                 allCardFlippedMutableLiveData.value = true
@@ -61,15 +62,41 @@ class GamePlayViewModel: ViewModel() {
             this.selectedCardEntity = selectedCardEntity
         } else {
             if (selectedCardEntity.resourceId != this.selectedCardEntity?.resourceId) {
-                listOfCard.first { it.id == selectedCardEntity.id }.isFlipped = false
-                listOfCard.first { it.id == this.selectedCardEntity?.id }.isFlipped = false
+                delayBeforeFlip(selectedCardEntity)
+            } else {
+                markCardAsComplete(selectedCardEntity)
             }
-
-            this.selectedCardEntity = null
         }
-
-        initiateCardMutableLiveData.value = listOfCard
     }
 
-    private fun isAllCardMatch(): Boolean = listOfCard.filter { !it.isFlipped }.isEmpty()
+    private fun markCardAsComplete(selectedCardEntity: CardEntity) {
+        listOfCardMutableLiveData.value = listOfCardMutableLiveData.value?.map {
+            if ((it.id == selectedCardEntity.id) or (it.id == this@GamePlayViewModel.selectedCardEntity?.id)) {
+                it.copy(isComplete = true, isFlipped = true)
+            } else {
+                it
+            }
+        }
+
+        this@GamePlayViewModel.selectedCardEntity = null
+    }
+
+    private fun delayBeforeFlip(selectedCardEntity: CardEntity) {
+        viewModelScope.launch {
+            val savedSelectedCardEntity = this@GamePlayViewModel.selectedCardEntity?.copy()
+            delay(2000)
+            listOfCardMutableLiveData.value = listOfCardMutableLiveData.value?.map {
+                if ((it.id == selectedCardEntity.id) or (it.id == savedSelectedCardEntity?.id)) {
+                    it.copy(isFlipped = false)
+                } else {
+                    it
+                }
+            }
+
+            this@GamePlayViewModel.selectedCardEntity = null
+        }
+    }
+
+    private fun isAllCardMatch(): Boolean =
+        listOfCardMutableLiveData.value?.none { !it.isFlipped } == true
 }
