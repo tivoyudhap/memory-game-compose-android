@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -52,6 +53,7 @@ import com.example.memorygame.support.STATE_GAME_RUNNING
 import com.example.memorygame.ui.theme.BlueSoft
 import com.example.memorygame.ui.theme.MemoryGameTheme
 import com.example.memorygame.ui.theme.Orange
+import com.example.memorygame.ui.theme.OrangeLight
 import com.example.memorygame.viewmodel.GameCounterViewModel
 import com.example.memorygame.viewmodel.GamePlayViewModel
 
@@ -163,7 +165,8 @@ fun HeaderContent(viewModel: GameCounterViewModel) {
 
     Box(modifier = Modifier
         .fillMaxWidth()
-        .height(getScreenDimensions().second.times(0.1f))) {
+        .height(getScreenDimensions().second.times(0.1f)),
+        contentAlignment = Alignment.BottomCenter) {
         val headerText = when (gameEntity?.state) {
             null -> stringResource(id = R.string.press_play_to_start)
             STATE_GAME_RUNNING -> stringResource(id = R.string.second_left_information, gameEntity?.counter ?: -1, if ((gameEntity?.counter ?: 1) > 1) "s" else "")
@@ -171,7 +174,7 @@ fun HeaderContent(viewModel: GameCounterViewModel) {
             else -> stringResource(id = R.string.game_over)
         }
 
-        Text(headerText, modifier = Modifier.matchParentSize(), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
+        Text(headerText, modifier = Modifier.wrapContentSize(), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -194,6 +197,7 @@ fun BottomContent(viewModel: GameCounterViewModel) {
                 modifier = Modifier
                     .wrapContentWidth()
                     .wrapContentHeight(),
+                colors = ButtonDefaults.buttonColors(containerColor = OrangeLight),
                 contentPadding = PaddingValues(16.dp),
                 shape = RoundedCornerShape(16.dp),
                 onClick = { viewModel.startOrPause() }) {
