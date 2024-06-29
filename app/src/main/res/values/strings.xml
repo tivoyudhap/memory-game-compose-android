@@ -4,4 +4,5 @@
     <string name="second_left_information">%s second%s left</string>
     <string name="game_paused">Game Paused (%s second left)</string>
     <string name="game_over">Game Over!</string>
+    <string name="game_over_winner">You Win!</string>
 </resources>

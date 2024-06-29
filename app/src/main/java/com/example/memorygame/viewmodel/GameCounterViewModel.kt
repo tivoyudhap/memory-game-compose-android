@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.memorygame.entity.GameEntity
 import com.example.memorygame.support.SECOND_PER_MINUTE
+import com.example.memorygame.support.STATE_GAME_NOT_START
 import com.example.memorygame.support.STATE_GAME_OVER
 import com.example.memorygame.support.STATE_GAME_PAUSED
 import com.example.memorygame.support.STATE_GAME_RUNNING
@@ -28,10 +29,14 @@ class GameCounterViewModel: ViewModel() {
     fun startOrPause() {
         if (counterLiveData.value == null) {
             startGame()
+        } else if (counterLiveData.value?.state == STATE_GAME_NOT_START) {
+            startGame()
         } else if (counterLiveData.value?.state == STATE_GAME_RUNNING) {
             pauseGame()
         } else if (counterLiveData.value?.state == STATE_GAME_PAUSED) {
             resumeGame()
+        } else if (counterLiveData.value?.state == STATE_GAME_WINNER) {
+            resetGame()
         }
     }
 
@@ -77,6 +82,14 @@ class GameCounterViewModel: ViewModel() {
         gameCountDown?.start()
         counterMutableLiveData.value = GameEntity(
             state = STATE_GAME_RUNNING,
+            counter = timeLeft
+        )
+    }
+
+    private fun resetGame() {
+        timeLeft = 61
+        counterMutableLiveData.value = GameEntity(
+            state = STATE_GAME_NOT_START,
             counter = timeLeft
         )
     }

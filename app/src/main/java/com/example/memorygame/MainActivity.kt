@@ -48,8 +48,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.memorygame.entity.CardEntity
 import com.example.memorygame.entity.GameEntity
+import com.example.memorygame.support.STATE_GAME_NOT_START
+import com.example.memorygame.support.STATE_GAME_OVER
 import com.example.memorygame.support.STATE_GAME_PAUSED
 import com.example.memorygame.support.STATE_GAME_RUNNING
+import com.example.memorygame.support.STATE_GAME_WINNER
 import com.example.memorygame.ui.theme.BlueSoft
 import com.example.memorygame.ui.theme.MemoryGameTheme
 import com.example.memorygame.ui.theme.Orange
@@ -96,6 +99,12 @@ class MainActivity : ComponentActivity() {
         gamePlayViewModel.allCardFlippedLiveData.observeForever {
             if (it) {
                 viewModel.win()
+            }
+        }
+
+        viewModel.counterLiveData.observeForever {
+            if (it.state == STATE_GAME_NOT_START) {
+                gamePlayViewModel.generateInitialImageMapping()
             }
         }
     }
@@ -171,6 +180,7 @@ fun HeaderContent(viewModel: GameCounterViewModel) {
             null -> stringResource(id = R.string.press_play_to_start)
             STATE_GAME_RUNNING -> stringResource(id = R.string.second_left_information, gameEntity?.counter ?: -1, if ((gameEntity?.counter ?: 1) > 1) "s" else "")
             STATE_GAME_PAUSED -> stringResource(id = R.string.game_paused, gameEntity?.counter ?: -1)
+            STATE_GAME_WINNER -> stringResource(id = R.string.game_over_winner)
             else -> stringResource(id = R.string.game_over)
         }
 
@@ -203,7 +213,13 @@ fun BottomContent(viewModel: GameCounterViewModel) {
                 onClick = { viewModel.startOrPause() }) {
                 Image(
                     painter = painterResource(
-                        id = if (state?.state == STATE_GAME_RUNNING) R.drawable.rounded_pause_circle else R.drawable.rounded_not_started
+                        id =
+                        when (state?.state) {
+                            STATE_GAME_RUNNING -> R.drawable.rounded_pause_circle
+                            STATE_GAME_WINNER -> R.drawable.baseline_restart_alt_24
+                            STATE_GAME_OVER -> R.drawable.baseline_restart_alt_24
+                            else -> R.drawable.rounded_not_started
+                        }
                     ),
                     contentDescription = "Start / Pause",
                     modifier = Modifier
