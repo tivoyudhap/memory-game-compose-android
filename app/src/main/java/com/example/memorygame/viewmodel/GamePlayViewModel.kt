@@ -84,6 +84,7 @@ class GamePlayViewModel: ViewModel() {
     private fun delayBeforeFlip(selectedCardEntity: CardEntity) {
         viewModelScope.launch {
             val savedSelectedCardEntity = this@GamePlayViewModel.selectedCardEntity?.copy()
+            this@GamePlayViewModel.selectedCardEntity = null
             delay(1500)
             listOfCardMutableLiveData.value = listOfCardMutableLiveData.value?.map {
                 if ((it.id == selectedCardEntity.id) or (it.id == savedSelectedCardEntity?.id)) {
@@ -92,8 +93,6 @@ class GamePlayViewModel: ViewModel() {
                     it
                 }
             }
-
-            this@GamePlayViewModel.selectedCardEntity = null
         }
     }
 
