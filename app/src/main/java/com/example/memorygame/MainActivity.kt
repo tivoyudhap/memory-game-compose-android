@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.Dimension
 import com.example.memorygame.entity.CardEntity
 import com.example.memorygame.entity.GameEntity
 import com.example.memorygame.support.STATE_GAME_NOT_START
@@ -70,15 +73,15 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MemoryGameTheme {
-                Surface(
+                Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(color = Orange),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Column {
+                        .padding(16.dp)
+                        .background(color = Orange)
+                ) { paddingValues ->
+                    Column(modifier = Modifier.padding(paddingValues)) {
                         HeaderContent(viewModel = viewModel)
-                        MainContent(gamePlayViewModel = gamePlayViewModel)
+                        MainContent(gamePlayViewModel = gamePlayViewModel, gameCounterViewModel = viewModel)
                         BottomContent(viewModel = viewModel)
                     }
                 }
@@ -111,7 +114,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun CardView(entity: CardEntity, gamePlayViewModel: GamePlayViewModel) {
+fun CardView(entity: CardEntity, gamePlayViewModel: GamePlayViewModel, gameCounterViewModel: GameCounterViewModel) {
+    val counterState by gameCounterViewModel.counterLiveData.observeAsState()
+
     val widthCardStandard: Double = (getScreenDimensions().first.value - getScreenDimensions().first.value * 0.1) / 4
     val rotationY by animateFloatAsState(
         targetValue = if (entity.isFlipped) 180f else 0f,
@@ -123,7 +128,11 @@ fun CardView(entity: CardEntity, gamePlayViewModel: GamePlayViewModel) {
         .height(widthCardStandard.dp)
         .padding(8.dp)
         .graphicsLayer(rotationY = rotationY)
-        .clickable { gamePlayViewModel.onFlip(entity) },
+        .clickable {
+            if (counterState?.state == STATE_GAME_RUNNING) {
+                gamePlayViewModel.onFlip(entity)
+            }
+        },
         contentAlignment = Alignment.Center
     ) {
         CardContent(entity = entity, widthCardStandard = widthCardStandard.dp)
@@ -131,7 +140,7 @@ fun CardView(entity: CardEntity, gamePlayViewModel: GamePlayViewModel) {
 }
 
 @Composable
-fun MainContent(gamePlayViewModel: GamePlayViewModel) {
+fun MainContent(gamePlayViewModel: GamePlayViewModel, gameCounterViewModel: GameCounterViewModel) {
     val listOfCard by gamePlayViewModel.initiateCardLiveData.observeAsState(emptyList())
 
     val gridSize = 20
@@ -150,7 +159,8 @@ fun MainContent(gamePlayViewModel: GamePlayViewModel) {
                     (start until start + columns).forEach { index ->
                         CardView(
                             entity = listOfCard[index],
-                            gamePlayViewModel = gamePlayViewModel
+                            gamePlayViewModel = gamePlayViewModel,
+                            gameCounterViewModel = gameCounterViewModel
                         )
                     }
                 }
@@ -205,10 +215,11 @@ fun BottomContent(viewModel: GameCounterViewModel) {
         ) {
             Button(
                 modifier = Modifier
-                    .wrapContentWidth()
-                    .wrapContentHeight(),
+                    .width(150.dp)
+                    .height(80.dp)
+                ,
                 colors = ButtonDefaults.buttonColors(containerColor = OrangeLight),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(4.dp),
                 shape = RoundedCornerShape(16.dp),
                 onClick = { viewModel.startOrPause() }) {
                 Image(
@@ -223,7 +234,8 @@ fun BottomContent(viewModel: GameCounterViewModel) {
                     ),
                     contentDescription = "Start / Pause",
                     modifier = Modifier
-                        .size(50.dp)
+                        .fillMaxWidth()
+                        .fillMaxHeight()
                         .background(Color.Transparent)
                 )
             }
@@ -279,7 +291,6 @@ fun BackContent(widthCardStandard: Dp) {
 @Preview(showBackground = true, device = Devices.NEXUS_5)
 @Composable
 fun GreetingPreview() {
-//    BottomContent()
     Row {
         CardContent(entity = CardEntity(R.drawable.ic_rambutan), widthCardStandard = 100.dp)
         CardContent(entity = CardEntity(R.drawable.ic_watermelon), widthCardStandard = 100.dp)
