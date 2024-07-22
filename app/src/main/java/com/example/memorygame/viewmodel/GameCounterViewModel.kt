@@ -12,8 +12,12 @@ import com.example.memorygame.support.STATE_GAME_PAUSED
 import com.example.memorygame.support.STATE_GAME_RUNNING
 import com.example.memorygame.support.STATE_GAME_WINNER
 import com.example.memorygame.support.TIME_MILLIS_PER_SECOND
+import com.example.memorygame.support.TimerFactory
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class GameCounterViewModel: ViewModel() {
+@HiltViewModel
+class GameCounterViewModel @Inject constructor(private val timerFactory: TimerFactory): ViewModel() {
 
     private val counterMutableLiveData: MutableLiveData<GameEntity> = MutableLiveData()
     val counterLiveData: LiveData<GameEntity> = counterMutableLiveData
@@ -52,22 +56,21 @@ class GameCounterViewModel: ViewModel() {
 
     private fun startGame() {
         timeLeft = SECOND_PER_MINUTE * TIME_MILLIS_PER_SECOND
+        gameCountDown = timerFactory.create(timeLeft, TIME_MILLIS_PER_SECOND, ::onTick, ::onFinish)
+    }
 
-        gameCountDown = object : CountDownTimer(timeLeft, TIME_MILLIS_PER_SECOND) {
-            override fun onTick(millisUntilFinished: Long) {
-                timeLeft = millisUntilFinished / TIME_MILLIS_PER_SECOND
-                counterMutableLiveData.value = GameEntity(
-                    state = STATE_GAME_RUNNING,
-                    counter = timeLeft
-                )
-            }
+    private fun onTick(millisUntilFinished: Long) {
+        timeLeft = millisUntilFinished / TIME_MILLIS_PER_SECOND
+        counterMutableLiveData.value = GameEntity(
+            state = STATE_GAME_RUNNING,
+            counter = timeLeft
+        )
+    }
 
-            override fun onFinish() {
-                counterMutableLiveData.value = GameEntity(
-                    state = STATE_GAME_OVER
-                )
-            }
-        }.start()
+    private fun onFinish() {
+        counterMutableLiveData.value = GameEntity(
+            state = STATE_GAME_OVER
+        )
     }
 
     private fun pauseGame() {
