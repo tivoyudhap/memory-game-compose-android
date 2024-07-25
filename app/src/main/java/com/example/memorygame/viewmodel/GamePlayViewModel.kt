@@ -6,10 +6,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.memorygame.R
 import com.example.memorygame.entity.CardEntity
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class GamePlayViewModel: ViewModel() {
+@HiltViewModel
+class GamePlayViewModel @Inject constructor(): ViewModel() {
 
     private val imageMapping: MutableMap<Int, Int> = mutableMapOf(
         1 to R.drawable.ic_banana,

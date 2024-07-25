@@ -56,7 +56,9 @@ import com.example.memorygame.ui.theme.Orange
 import com.example.memorygame.ui.theme.OrangeLight
 import com.example.memorygame.viewmodel.GameCounterViewModel
 import com.example.memorygame.viewmodel.GamePlayViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val viewModel: GameCounterViewModel by viewModels()
