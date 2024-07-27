@@ -1,8 +1,7 @@
-package com.example.memorygame
+package com.example.memorygame.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.example.memorygame.entity.CardEntity
-import com.example.memorygame.viewmodel.GamePlayViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher

@@ -1,17 +1,17 @@
-package com.example.memorygame
+package com.example.memorygame.viewmodel
 
 import android.os.CountDownTimer
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
-import com.example.memorygame.MockitoHelper.anyObject
 import com.example.memorygame.entity.GameEntity
+import com.example.memorygame.helper.MockitoHelper.anyObject
+import com.example.memorygame.helper.whenever
 import com.example.memorygame.support.STATE_GAME_NOT_START
 import com.example.memorygame.support.STATE_GAME_OVER
 import com.example.memorygame.support.STATE_GAME_PAUSED
 import com.example.memorygame.support.STATE_GAME_RUNNING
 import com.example.memorygame.support.STATE_GAME_WINNER
 import com.example.memorygame.support.TimerFactory
-import com.example.memorygame.viewmodel.GameCounterViewModel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

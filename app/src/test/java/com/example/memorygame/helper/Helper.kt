@@ -1,4 +1,4 @@
-package com.example.memorygame
+package com.example.memorygame.helper
 
 import org.mockito.Mockito
 import org.mockito.stubbing.OngoingStubbing
