@@ -14,13 +14,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -72,12 +74,16 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp)
+                        .padding(vertical = 16.dp)
                         .background(color = Orange)
                 ) { paddingValues ->
                     Column(modifier = Modifier.padding(paddingValues)) {
                         HeaderContent(viewModel = viewModel)
-                        MainContent(gamePlayViewModel = gamePlayViewModel, gameCounterViewModel = viewModel)
+                        MainContent(
+                            gamePlayViewModel = gamePlayViewModel,
+                            gameCounterViewModel = viewModel,
+                            modifier = Modifier.weight(1f).fillMaxWidth()
+                        )
                         BottomContent(viewModel = viewModel)
                     }
                 }
@@ -136,31 +142,26 @@ fun CardView(entity: CardEntity, gamePlayViewModel: GamePlayViewModel, gameCount
 }
 
 @Composable
-fun MainContent(gamePlayViewModel: GamePlayViewModel, gameCounterViewModel: GameCounterViewModel) {
+fun MainContent(
+    gamePlayViewModel: GamePlayViewModel,
+    gameCounterViewModel: GameCounterViewModel,
+    modifier: Modifier
+) {
     val listOfCard by gamePlayViewModel.initiateCardLiveData.observeAsState(emptyList())
 
-    val gridSize = 20
-    val columns = 4
-
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .height(getScreenDimensions().second.times(0.8f))) {
-        Column(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .wrapContentSize()
-        ) {
-            (0 until gridSize step columns).map { start ->
-                Row {
-                    (start until start + columns).forEach { index ->
-                        CardView(
-                            entity = listOfCard[index],
-                            gamePlayViewModel = gamePlayViewModel,
-                            gameCounterViewModel = gameCounterViewModel
-                        )
-                    }
-                }
-            }
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(4),
+        modifier = modifier,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp))
+    {
+        items(16) {
+            CardView(
+                entity = listOfCard[it],
+                gamePlayViewModel = gamePlayViewModel,
+                gameCounterViewModel = gameCounterViewModel
+            )
         }
     }
 }
@@ -200,41 +201,33 @@ fun BottomContent(viewModel: GameCounterViewModel) {
 
     Box(modifier = Modifier
         .fillMaxWidth()
-        .height(getScreenDimensions().second.times(0.1f))
+        .wrapContentHeight()
     ) {
-        Row(
+        Button(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
+                .wrapContentSize()
+                .align(Alignment.Center)
+            ,
+            colors = ButtonDefaults.buttonColors(containerColor = OrangeLight),
+            contentPadding = PaddingValues(4.dp),
+            shape = RoundedCornerShape(16.dp),
+            onClick = { viewModel.startOrPause() }) {
+            Image(
+                painter = painterResource(
+                    id =
+                    when (state?.state) {
+                        STATE_GAME_RUNNING -> R.drawable.rounded_pause_circle
+                        STATE_GAME_WINNER -> R.drawable.baseline_restart_alt_24
+                        STATE_GAME_OVER -> R.drawable.baseline_restart_alt_24
+                        else -> R.drawable.rounded_not_started
+                    }
+                ),
+                contentDescription = "Start / Pause",
                 modifier = Modifier
                     .width(150.dp)
-                    .height(80.dp)
-                ,
-                colors = ButtonDefaults.buttonColors(containerColor = OrangeLight),
-                contentPadding = PaddingValues(4.dp),
-                shape = RoundedCornerShape(16.dp),
-                onClick = { viewModel.startOrPause() }) {
-                Image(
-                    painter = painterResource(
-                        id =
-                        when (state?.state) {
-                            STATE_GAME_RUNNING -> R.drawable.rounded_pause_circle
-                            STATE_GAME_WINNER -> R.drawable.baseline_restart_alt_24
-                            STATE_GAME_OVER -> R.drawable.baseline_restart_alt_24
-                            else -> R.drawable.rounded_not_started
-                        }
-                    ),
-                    contentDescription = "Start / Pause",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .background(Color.Transparent)
-                )
-            }
+                    .height(40.dp)
+                    .background(Color.Transparent)
+            )
         }
     }
 }

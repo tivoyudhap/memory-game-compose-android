@@ -13,6 +13,7 @@ mockito = "5.1.1"
 hilt = "2.51.1"
 ksp = "1.9.23-1.0.19"
 coreTesting = "2.2.0"
+flowlayout = "0.28.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,6 +37,7 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
 androidx-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "coreTesting" }
+androidx-flowlayout = { group = "com.google.accompanist", name = "accompanist-flowlayout", version.ref = "flowlayout" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
