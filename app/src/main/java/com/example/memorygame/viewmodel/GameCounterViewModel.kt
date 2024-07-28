@@ -41,6 +41,8 @@ class GameCounterViewModel @Inject constructor(private val timerFactory: TimerFa
             resumeGame()
         } else if (counterLiveData.value?.state == STATE_GAME_WINNER) {
             resetGame()
+        } else if (counterLiveData.value?.state == STATE_GAME_OVER) {
+            resetGame()
         }
     }
 

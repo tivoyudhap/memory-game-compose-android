@@ -160,4 +160,37 @@ class GameCounterViewModelTest {
         assert(viewModel.counterLiveData.value?.state == STATE_GAME_RUNNING)
         assert(viewModel.counterLiveData.value?.counter == 1L)
     }
+
+    @Test
+    fun `GIVEN state is STATE_GAME_RUNNING then timer is over, state MUST be STATE_GAME_OVER`() {
+        viewModel.counterLiveData.observeForever(observer)
+
+        doAnswer {
+            val onFinish = it.arguments[3] as () -> Unit
+            onFinish()
+            null
+        }.whenever(timerFactory).create(anyLong(), anyLong(), anyObject(), anyObject())
+
+        viewModel.startOrPause()
+
+        assert(viewModel.counterLiveData.value?.state == STATE_GAME_OVER)
+    }
+
+    @Test
+    fun `GIVEN state is STATE_GAME_OVERT then call startOrPause(), state MUST be STATE_GAME_NOT_START`() {
+        viewModel.counterLiveData.observeForever(observer)
+
+        doAnswer {
+            val onFinish = it.arguments[3] as () -> Unit
+            onFinish()
+            null
+        }.whenever(timerFactory).create(anyLong(), anyLong(), anyObject(), anyObject())
+
+        viewModel.startOrPause()
+
+        viewModel.startOrPause()
+
+        assert(viewModel.counterLiveData.value?.state == STATE_GAME_NOT_START)
+        assert(viewModel.counterLiveData.value?.counter == 61L)
+    }
 }
