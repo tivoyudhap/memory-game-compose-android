@@ -156,7 +156,7 @@ fun MainContent(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp))
     {
-        items(16) {
+        items(20) {
             CardView(
                 entity = listOfCard[it],
                 gamePlayViewModel = gamePlayViewModel,
