@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +53,16 @@ import com.example.memorygame.support.STATE_GAME_OVER
 import com.example.memorygame.support.STATE_GAME_PAUSED
 import com.example.memorygame.support.STATE_GAME_RUNNING
 import com.example.memorygame.support.STATE_GAME_WINNER
+import com.example.memorygame.support.TEST_TAG_BOTTOM_BOX
+import com.example.memorygame.support.TEST_TAG_CARD_BOX
+import com.example.memorygame.support.TEST_TAG_FRONT_CARD
+import com.example.memorygame.support.TEST_TAG_GAMEPLAY_BUTTON
+import com.example.memorygame.support.TEST_TAG_GAMEPLAY_IMAGE
+import com.example.memorygame.support.TEST_TAG_LAZY_VERTICAL_COLUMN
+import com.example.memorygame.support.TEST_TAG_MAIN_COLUMN
+import com.example.memorygame.support.TEST_TAG_SCAFFOLD
+import com.example.memorygame.support.cardStateTag
+import com.example.memorygame.support.testTag
 import com.example.memorygame.ui.theme.BlueSoft
 import com.example.memorygame.ui.theme.MemoryGameTheme
 import com.example.memorygame.ui.theme.Orange
@@ -76,13 +87,21 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .padding(vertical = 16.dp)
                         .background(color = Orange)
+                        .testTag(TEST_TAG_SCAFFOLD)
                 ) { paddingValues ->
-                    Column(modifier = Modifier.padding(paddingValues)) {
+                    Column(
+                        modifier = Modifier
+                            .padding(paddingValues)
+                            .testTag(TEST_TAG_MAIN_COLUMN)
+                    ) {
                         HeaderContent(viewModel = viewModel)
                         MainContent(
                             gamePlayViewModel = gamePlayViewModel,
                             gameCounterViewModel = viewModel,
-                            modifier = Modifier.weight(1f).fillMaxWidth()
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .testTag(TEST_TAG_LAZY_VERTICAL_COLUMN)
                         )
                         BottomContent(viewModel = viewModel)
                     }
@@ -130,6 +149,8 @@ fun CardView(entity: CardEntity, gamePlayViewModel: GamePlayViewModel, gameCount
         .height(widthCardStandard.dp)
         .padding(8.dp)
         .graphicsLayer(rotationY = rotationY)
+        .testTag(TEST_TAG_CARD_BOX)
+        .cardStateTag(isFlipped = entity.isFlipped)
         .clickable {
             if (counterState?.state == STATE_GAME_RUNNING) {
                 gamePlayViewModel.onFlip(entity)
@@ -199,34 +220,36 @@ fun HeaderContent(viewModel: GameCounterViewModel) {
 fun BottomContent(viewModel: GameCounterViewModel) {
     val state: GameEntity? by viewModel.counterLiveData.observeAsState()
 
+    val imageResource = when (state?.state) {
+        STATE_GAME_RUNNING -> R.drawable.rounded_pause_circle
+        STATE_GAME_WINNER -> R.drawable.baseline_restart_alt_24
+        STATE_GAME_OVER -> R.drawable.baseline_restart_alt_24
+        else -> R.drawable.rounded_not_started
+    }
+
     Box(modifier = Modifier
         .fillMaxWidth()
         .wrapContentHeight()
+        .testTag(TEST_TAG_BOTTOM_BOX)
     ) {
         Button(
             modifier = Modifier
                 .wrapContentSize()
                 .align(Alignment.Center)
-            ,
+                .testTag(TEST_TAG_GAMEPLAY_BUTTON),
             colors = ButtonDefaults.buttonColors(containerColor = OrangeLight),
             contentPadding = PaddingValues(4.dp),
             shape = RoundedCornerShape(16.dp),
             onClick = { viewModel.startOrPause() }) {
             Image(
-                painter = painterResource(
-                    id =
-                    when (state?.state) {
-                        STATE_GAME_RUNNING -> R.drawable.rounded_pause_circle
-                        STATE_GAME_WINNER -> R.drawable.baseline_restart_alt_24
-                        STATE_GAME_OVER -> R.drawable.baseline_restart_alt_24
-                        else -> R.drawable.rounded_not_started
-                    }
-                ),
-                contentDescription = "Start / Pause",
                 modifier = Modifier
                     .width(150.dp)
                     .height(40.dp)
                     .background(Color.Transparent)
+                    .testTag(TEST_TAG_GAMEPLAY_IMAGE)
+                    .testTag(resourceId = imageResource),
+                painter = painterResource(id = imageResource),
+                contentDescription = "Start / Pause"
             )
         }
     }
@@ -245,7 +268,9 @@ fun FrontContent(entity: CardEntity, widthCardStandard: Dp) {
     Surface(
         modifier = Modifier
             .width(widthCardStandard)
-            .height(widthCardStandard),
+            .height(widthCardStandard)
+            .testTag("${TEST_TAG_FRONT_CARD}_${entity.id}")
+            .testTag(entity.resourceId),
         shape = RoundedCornerShape(16.dp),
         color = if (entity.isComplete) Color.Green else Color.Red
     ) {
