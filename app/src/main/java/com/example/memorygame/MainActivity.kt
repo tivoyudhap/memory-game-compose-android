@@ -5,10 +5,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -85,7 +89,6 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(vertical = 16.dp)
                         .background(color = Orange)
                         .testTag(TEST_TAG_SCAFFOLD)
                 ) { paddingValues ->
@@ -230,8 +233,14 @@ fun BottomContent(viewModel: GameCounterViewModel) {
     Box(modifier = Modifier
         .fillMaxWidth()
         .wrapContentHeight()
+        .padding(bottom = 32.dp)
         .testTag(TEST_TAG_BOTTOM_BOX)
     ) {
+        val interactionSource = remember { MutableInteractionSource() }
+        val isPressed by interactionSource.collectIsPressedAsState()
+
+        val elevation by animateDpAsState(targetValue = if (isPressed) 2.dp else 8.dp, label = "")
+
         Button(
             modifier = Modifier
                 .wrapContentSize()
@@ -240,6 +249,8 @@ fun BottomContent(viewModel: GameCounterViewModel) {
             colors = ButtonDefaults.buttonColors(containerColor = OrangeLight),
             contentPadding = PaddingValues(4.dp),
             shape = RoundedCornerShape(16.dp),
+            elevation = ButtonDefaults.buttonElevation(elevation),
+            interactionSource = interactionSource,
             onClick = { viewModel.startOrPause() }) {
             Image(
                 modifier = Modifier
