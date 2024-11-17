@@ -36,6 +36,7 @@ class GamePlayViewModel @Inject constructor(): ViewModel() {
     val allCardFlippedLiveData: LiveData<Boolean> = allCardFlippedMutableLiveData
 
     fun generateInitialImageMapping() {
+        allCardFlippedMutableLiveData.value = false
         val list: MutableList<CardEntity> = mutableListOf()
         for (a in 0 until 20) {
             list.add(

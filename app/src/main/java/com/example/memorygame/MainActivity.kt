@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -50,6 +51,10 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.memorygame.entity.CardEntity
 import com.example.memorygame.entity.GameEntity
 import com.example.memorygame.support.STATE_GAME_NOT_START
@@ -108,6 +113,8 @@ class MainActivity : ComponentActivity() {
                         )
                         BottomContent(viewModel = viewModel)
                     }
+
+                    WinLottieAnimation(gamePlayViewModel, onDismissWinAnimationClicked)
                 }
             }
         }
@@ -133,6 +140,35 @@ class MainActivity : ComponentActivity() {
             if (it.state == STATE_GAME_NOT_START) {
                 gamePlayViewModel.generateInitialImageMapping()
             }
+        }
+    }
+
+    private val onDismissWinAnimationClicked = fun () {
+        viewModel.startOrPause()
+    }
+}
+
+@Composable
+fun WinLottieAnimation(gamePlayViewModel: GamePlayViewModel, onDismissWinClicked: () -> Unit) {
+    val state = gamePlayViewModel.allCardFlippedLiveData.observeAsState()
+
+    if (state.value == true) {
+        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.animation_celebration))
+
+        Box(modifier = Modifier
+            .background(Color.Black.copy(alpha = 0.6f))
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .clickable { onDismissWinClicked() },
+            contentAlignment = Alignment.Center) {
+            Column(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
+                LottieAnimation(
+                    composition = composition,
+                    iterations = LottieConstants.IterateForever
+                )
+            }
+
+            Text("You win! Tap anywhere to dismiss.", color = Color.White)
         }
     }
 }

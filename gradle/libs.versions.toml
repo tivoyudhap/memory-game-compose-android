@@ -16,6 +16,7 @@ coreTesting = "2.2.0"
 flowlayout = "0.28.0"
 coroutineTest = "1.7.3"
 composeUnitTest = "1.0.0"
+lottie = "6.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,6 +44,7 @@ androidx-flowlayout = { group = "com.google.accompanist", name = "accompanist-fl
 coroutine-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutineTest" }
 compose-ui-test = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "composeUnitTest" }
 compose-ui-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest", version.ref = "composeUnitTest" }
+lottie = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
